@@ -31,8 +31,8 @@ object StringObfuscator: IClassProcessor {
 	var keysField: FieldNode by Delegates.notNull()
 	override val progressDescription: String
 		get() = "Obfuscating string constants"
-	
-	val hashParts = CObfuscator.hashParts
+
+//	val hashParts = CObfuscator.hashParts
 	
 	override fun process(classes: MutableCollection<ClassNode>, passThrough: MutableMap<String, ByteArray>) {
 		if (!rootConfig.stringObfuscation.enabled) {
@@ -51,7 +51,7 @@ object StringObfuscator: IClassProcessor {
 				for (insn in method.instructions) {
 					if (insn is LdcInsnNode && insn.cst is String) {
 						val cst = insn.cst as String
-						if (cst.length > hashParts[3] + 1) { // > 1
+						if (cst.length > 1) { // > 1
 							val encryptedString =
 								encryptString(
 									cst,
@@ -66,7 +66,7 @@ object StringObfuscator: IClassProcessor {
 				}
 			}
 		}
-		if (stringInsns.size > hashParts[3]) {
+		if (stringInsns.size > 0) {
 			val decryptNode = ClassNode()
 				.apply {
 					this.access = ACC_PUBLIC + ACC_FINAL
@@ -168,7 +168,7 @@ object StringObfuscator: IClassProcessor {
 	}
 	
 	private fun generateInitFunc(classNode: ClassNode, storageField: FieldNode) {
-		val access = hashParts[2] xor 37401 // 0
+		val access = 0 // 0
 		classNode.methods.add(MethodNode(access, "<init>", "()V", null, null).apply {
 			instructions.apply {
 				add(VarInsnNode(ALOAD, 0))
@@ -181,112 +181,112 @@ object StringObfuscator: IClassProcessor {
 	private fun generateStaticBlock(classNode: ClassNode, storageField: FieldNode): MethodNode {
 		val staticInit =
 			classNode.methods.firstOrNull { it.name == "<clinit>" && it.desc == "()V" }
-			?: MethodNode(ACC_STATIC, "<clinit>", "()V", null, null).also { mn ->
-				mn.instructions.apply {
-					val tc1S = newLabel()
-					val tc1E = newLabel()
-					val tc1H = newLabel()
-					val tc2S = newLabel()
-					val tc2E = newLabel()
-					val tc2H = newLabel()
-					
-					mn.tryCatchBlocks.add(TryCatchBlockNode(tc2S, tc2E, tc2H, "java/lang/IllegalMonitorStateException"))
-					mn.tryCatchBlocks.add(TryCatchBlockNode(tc1S, tc1E, tc1H, "java/lang/RuntimeException"))
-					
-					val loopStart = newLabel()
-					val loopEnd = newLabel()
-					val setArr = newLabel()
-					val inc = newLabel()
-					
-					add(ACONST_NULL) // [a]
-					add(DUP)
-					add(VarInsnNode(ASTORE, 2)) // [a]
-					add(DUP) // [a a]
-					add(ICONST_M1)  // [a a i]
-					add(VarInsnNode(ISTORE, 4)) // [a a]
-					add(VarInsnNode(ASTORE, 3)) // [a]
-					add(TypeInsnNode(NEW, "java/util/Random")) // [a u]
-					add(DUP) // [a u u]
-					add(ldcInt(keys.size xor key)) // [a u u i]
-					add(ldcInt(key)) // [a u u i i]
-					add(IXOR) // [a u u i]
-					add(DUP) // [a u u i i]
-					add(IntInsnNode(NEWARRAY, T_INT)) // [a u u i a]
-					add(DUP) // [a u u i a a]
-					add(VarInsnNode(ASTORE, 1)) // [a u u i a]
-					add(FieldInsnNode(PUTSTATIC, classNode.name, keysField.name, keysField.desc)) // [a u u i]
-					add(VarInsnNode(ISTORE, 0)) // [a u u]
-					add(tc1S)
-					add(MethodInsnNode(INVOKESPECIAL, "java/util/Random", "<init>", "()V")) // [a a]
-					add(VarInsnNode(ASTORE, 2)) // [a]
-					add(DUP) // [a a]
-					add(VarInsnNode(ASTORE, 3)) // [a]
-					add(MONITOREXIT) // []
-					add(RETURN)
-					
-					add(tc1H) // [a]
-					add(POP) // []
-					
-					add(loopStart)
-					add(VarInsnNode(ILOAD, 0)) // [i]
-					add(DUP) // [i i]
-					add(JumpInsnNode(IFLT, loopEnd)) // [i]
-					add(tc2S)
-					
-					val labels = Array(keys.size) {
-						newLabel()
-					}
-					val default = newLabel()
-					add(TableSwitchInsnNode(
-						0,
-						keys.size - 1,
-						default,
-						*labels
-					)) // []
-					
-					for ((i, label) in labels.withIndex().shuffled(random)) {
-						add(label) // []
-						add(ldcInt(keys[i] xor key)) // [i]
-						add(VarInsnNode(ISTORE, 4)) // []
-						add(VarInsnNode(ALOAD, 2)) // [a]
+				?: MethodNode(ACC_STATIC, "<clinit>", "()V", null, null).also { mn ->
+					mn.instructions.apply {
+						val tc1S = newLabel()
+						val tc1E = newLabel()
+						val tc1H = newLabel()
+						val tc2S = newLabel()
+						val tc2E = newLabel()
+						val tc2H = newLabel()
+						
+						mn.tryCatchBlocks.add(TryCatchBlockNode(tc2S, tc2E, tc2H, "java/lang/IllegalMonitorStateException"))
+						mn.tryCatchBlocks.add(TryCatchBlockNode(tc1S, tc1E, tc1H, "java/lang/RuntimeException"))
+						
+						val loopStart = newLabel()
+						val loopEnd = newLabel()
+						val setArr = newLabel()
+						val inc = newLabel()
+						
+						add(ACONST_NULL) // [a]
+						add(DUP)
+						add(VarInsnNode(ASTORE, 2)) // [a]
+						add(DUP) // [a a]
+						add(ICONST_M1)  // [a a i]
+						add(VarInsnNode(ISTORE, 4)) // [a a]
+						add(VarInsnNode(ASTORE, 3)) // [a]
+						add(TypeInsnNode(NEW, "java/util/Random")) // [a u]
+						add(DUP) // [a u u]
+						add(ldcInt(keys.size xor key)) // [a u u i]
+						add(ldcInt(key)) // [a u u i i]
+						add(IXOR) // [a u u i]
+						add(DUP) // [a u u i i]
+						add(IntInsnNode(NEWARRAY, T_INT)) // [a u u i a]
+						add(DUP) // [a u u i a a]
+						add(VarInsnNode(ASTORE, 1)) // [a u u i a]
+						add(FieldInsnNode(PUTSTATIC, classNode.name, keysField.name, keysField.desc)) // [a u u i]
+						add(VarInsnNode(ISTORE, 0)) // [a u u]
+						add(tc1S)
+						add(MethodInsnNode(INVOKESPECIAL, "java/util/Random", "<init>", "()V")) // [a a]
+						add(VarInsnNode(ASTORE, 2)) // [a]
+						add(DUP) // [a a]
+						add(VarInsnNode(ASTORE, 3)) // [a]
 						add(MONITOREXIT) // []
-						//add(RETURN)
-						//add(JumpInsnNode(GOTO, setArr))
+						add(RETURN)
+						
+						add(tc1H) // [a]
+						add(POP) // []
+						
+						add(loopStart)
+						add(VarInsnNode(ILOAD, 0)) // [i]
+						add(DUP) // [i i]
+						add(JumpInsnNode(IFLT, loopEnd)) // [i]
+						add(tc2S)
+						
+						val labels = Array(keys.size) {
+							newLabel()
+						}
+						val default = newLabel()
+						add(TableSwitchInsnNode(
+							0,
+							keys.size - 1,
+							default,
+							*labels
+						)) // []
+						
+						for ((i, label) in labels.withIndex().shuffled(random)) {
+							add(label) // []
+							add(ldcInt(keys[i] xor key)) // [i]
+							add(VarInsnNode(ISTORE, 4)) // []
+							add(VarInsnNode(ALOAD, 2)) // [a]
+							add(MONITOREXIT) // []
+							//add(RETURN)
+							//add(JumpInsnNode(GOTO, setArr))
+						}
+						add(RETURN)
+						
+						add(tc2H) // [a]
+						add(POP) // []
+						add(setArr)
+						add(VarInsnNode(ILOAD, 4)) // [i]
+						add(VarInsnNode(ALOAD, 1)) // [a]
+						add(DUP_X1)
+						add(POP)
+						add(ldcInt(key))
+						add(IXOR)
+						add(VarInsnNode(ILOAD, 0))
+						add(SWAP)
+						add(IASTORE)
+						
+						add(inc)
+						add(VarInsnNode(ILOAD, 0))
+						add(ldcInt(-1))
+						add(IADD)
+						add(VarInsnNode(ISTORE, 0))
+						add(VarInsnNode(ALOAD, 3))
+						add(MONITOREXIT)
+						add(JumpInsnNode(GOTO, labels.random(random)))
+						add(tc1E)
+						
+						add(loopEnd)
+						add(InsnNode(RETURN))
+						add(default)
+						//add(POP)
+						add(JumpInsnNode(GOTO, inc))
+						add(tc2E)
 					}
-					add(RETURN)
-					
-					add(tc2H) // [a]
-					add(POP) // []
-					add(setArr)
-					add(VarInsnNode(ILOAD, 4)) // [i]
-					add(VarInsnNode(ALOAD, 1)) // [a]
-					add(DUP_X1)
-					add(POP)
-					add(ldcInt(key))
-					add(IXOR)
-					add(VarInsnNode(ILOAD, 0))
-					add(SWAP)
-					add(IASTORE)
-					
-					add(inc)
-					add(VarInsnNode(ILOAD, 0))
-					add(ldcInt(-1))
-					add(IADD)
-					add(VarInsnNode(ISTORE, 0))
-					add(VarInsnNode(ALOAD, 3))
-					add(MONITOREXIT)
-					add(JumpInsnNode(GOTO, labels.random(random)))
-					add(tc1E)
-					
-					add(loopEnd)
-					add(InsnNode(RETURN))
-					add(default)
-					//add(POP)
-					add(JumpInsnNode(GOTO, inc))
-					add(tc2E)
+					classNode.methods.add(mn)
 				}
-				classNode.methods.add(mn)
-			}
 		
 		staticInit.instructions.insert(InsnList().apply {
 			add(TypeInsnNode(NEW, OpaqueRuntimeManager.classNode.name))

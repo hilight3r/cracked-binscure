@@ -53,15 +53,15 @@ object CObfuscator {
 	
 	operator fun invoke() {
 		disableIllegalAccessWarning()
-		
-		val license = Licenser.license
-		if (license == null) {
-			println("Invalid License File. Please email x4e_x4e@protonmail.com for assistance.")
-			return
-		} else {
-			println("Found valid username and password at ${Licenser.licenseFile}")
-		}
-		hashParts = license.hashParts
+
+//		val license = Licenser.license
+//		if (license == null) {
+//			println("Invalid License File. Please email x4e_x4e@protonmail.com for assistance.")
+//			return
+//		} else {
+//			println("Found valid username and password at ${Licenser.licenseFile}")
+//		}
+//		hashParts = license.hashParts
 		
 		/*val parts = license.hashParts
 		fun assertEq(a: Int, b: Int) {
@@ -128,7 +128,7 @@ object CObfuscator {
 			
 			//LoopUnroller,
 			//AbstractMethodImplementor, this is dumb
-
+			
 			ManifestResourceProcessor
 		)
 		
@@ -144,7 +144,7 @@ object CObfuscator {
 						val percentStr = ((progress / processors.size) * 100).toInt().toString().padStart(3, ' ')
 						print("$percentStr% - ${processor.progressDescription}".padEnd(100, ' '))
 					}
-					for (i in 0 until (hashParts[0] - 0x9121)) { // for i in 0 until 1
+					for (i in 0 until 1) { // for i in 0 until 1
 						processor.process(classes, passThrough)
 					}
 				} catch (t: Throwable) {
@@ -162,7 +162,7 @@ object CObfuscator {
 		
 		ClassPathIO.writeOutput(rootConfig.output)
 		
-		for (i in 0..(hashParts[8] - 0x91BCD)) { // for i in 0..0
+		for (i in 0..0) { // for i in 0..0
 			val duration = Duration.between(start, Instant.now())
 			println("Finished processing ${classes.size} classes and ${passThrough.size} resources in ${duration.toMillis() / 1000f}s")
 		}
@@ -188,7 +188,7 @@ object CObfuscator {
 	fun randomWeight(weight: Int): Boolean {
 		return random.nextInt(weight) == 0
 	}
-
+	
 	@Suppress("NOTHING_TO_INLINE", "ConstantConditionIf")
 	inline fun debug(message: Any) {
 		if (false) {
